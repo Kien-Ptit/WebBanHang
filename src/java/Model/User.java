@@ -1,29 +1,32 @@
 package Model;
+
 import java.sql.Timestamp;
 
 public class User {
+
     private int id;
     private String username;
     private String email;
     private String password;
-    private String firstName;
-    private String lastName;
+    private String fullname;
     private String phone;
+    private String address;
     private String role;
     private String status;
+    private String avatar;
     private Timestamp lastLogin;
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
     // Constructors
-    public User() {}
+    public User() {
+    }
 
-    public User(String username, String email, String password, String firstName, String lastName) {
+    public User(String username, String email, String password, String fullname) {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.fullname = fullname;
         this.role = "customer";
         this.status = "active";
     }
@@ -61,20 +64,12 @@ public class User {
         this.password = password;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getFullname() {
+        return fullname;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setFullname(String fullname) {
+        this.fullname = fullname;
     }
 
     public String getPhone() {
@@ -101,6 +96,14 @@ public class User {
         this.status = status;
     }
 
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
     public Timestamp getLastLogin() {
         return lastLogin;
     }
@@ -125,11 +128,6 @@ public class User {
         this.updatedAt = updatedAt;
     }
 
-    // Utility methods
-    public String getFullName() {
-        return firstName + " " + lastName;
-    }
-
     public boolean isAdmin() {
         return "admin".equalsIgnoreCase(role);
     }
@@ -146,16 +144,23 @@ public class User {
         return "active".equalsIgnoreCase(status);
     }
 
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
     @Override
     public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", email='" + email + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", role='" + role + '\'' +
-                ", status='" + status + '\'' +
-                '}';
+        return "User{"
+                + "id=" + id
+                + ", username='" + username + '\''
+                + ", email='" + email + '\''
+                + ", fullname='" + fullname + '\''
+                + ", role='" + role + '\''
+                + ", status='" + status + '\''
+                + '}';
     }
 }

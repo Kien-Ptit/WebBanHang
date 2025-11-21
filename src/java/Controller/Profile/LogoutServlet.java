@@ -3,7 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
 
-package Controller;
+package Controller.Profile;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -76,7 +76,7 @@ public class LogoutServlet extends HttpServlet {
         }
         
         // Redirect to login page with logout message
-        response.sendRedirect("login.jsp?message=logout");
+        response.sendRedirect("home?message=logout");
     }
     /** 
      * Returns a short description of the servlet.

@@ -1,0 +1,334 @@
+/* ===== Base ===== */
+:root{
+    --hs-bg: #111827;            /* nền header */
+    --hs-fg: #ffffff;            /* chữ/icon */
+    --hs-fg-dim: rgba(255,255,255,.75);
+    --hs-line: rgba(255,255,255,.12);
+    --hs-accent: #6477ff;
+    --hs-accent-hover: #5066ff;
+    --shadow: 0 6px 18px rgba(0,0,0,.22);
+}
+.hs-header{
+    position: sticky;
+    top:0;
+    z-index: 1000;
+    background: var(--hs-bg);
+    color: var(--hs-fg);
+    box-shadow: 0 1px 0 var(--hs-line);
+}
+.wrap{
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px 16px;
+}
+
+/* ===== Layout: cân đối 2 bên - search giữa ===== */
+.hs-menu{
+    display: grid;
+    grid-template-columns: 1fr minmax(340px,560px) 1fr; /* trái | search | phải */
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+}
+
+/* ===== Left / Right ===== */
+.hs-left, .hs-right{
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    list-style: none;
+    margin:0;
+    padding:0;
+    flex-wrap: nowrap;          /* <— không xuống dòng */
+    white-space: nowrap;
+}
+.hs-left{
+    justify-self: start;
+}
+.hs-right{
+    justify-self: end;
+}
+
+/* ===== Brand ===== */
+.brand__link{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--hs-fg);
+    text-decoration:none;
+    font-weight:600;
+}
+.brand__icon{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+}
+.brand__text{
+    line-height:1;
+}
+
+/* ===== Nav items ===== */
+.hs-nav-link, .hs-left a, .hs-right a{
+    color: var(--hs-fg-dim);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+}
+.hs-nav-link:hover{
+    color:#fff;
+    background: rgba(255,255,255,.06);
+}
+
+/* ===== Search in center ===== */
+.hs-search{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background: rgba(255,255,255,.08);
+    border:1px solid var(--hs-line);
+    padding:6px 10px;
+    border-radius:999px;
+    min-width: 280px;
+    width:100%;
+    max-width:560px;
+}
+.hs-search:focus-within{
+    background: rgba(255,255,255,.12);
+    border-color: rgba(255,255,255,.25);
+}
+.hs-search__input{
+    flex:1 1 auto;
+    background: transparent;
+    border:0;
+    outline:0;
+    color:#fff;
+    font-size:14px;
+    padding:4px 6px;
+}
+.hs-search__input::placeholder{
+    color: rgba(255,255,255,.6);
+}
+.hs-search__btn{
+    width:32px;
+    height:32px;
+    border-radius:999px;
+    border:0;
+    background: var(--hs-accent);
+    color:#fff;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    transition: transform .12s ease, background .12s ease;
+}
+.hs-search__btn:hover{
+    transform: translateY(-1px);
+    background: var(--hs-accent-hover);
+}
+
+/* ===== Cart badge ===== */
+.icon-btn{
+    position: relative;
+    color: var(--hs-fg-dim);
+}
+.icon-btn:hover{
+    color: #fff;
+}
+.badge{
+    position:absolute;
+    top:-6px;
+    right:-10px;
+    background:#ef4444;
+    color:#fff;
+    font-size:11px;
+    line-height:1;
+    padding:2px 6px;
+    border-radius:999px;
+}
+
+/* ===== Dropdown user ===== */
+.hs-user{
+    position: relative;
+}
+.hs-dropdown{
+    position: absolute;
+    right:0;
+    top: calc(100% + 8px);
+    min-width: 200px;
+    padding:8px;
+    margin:0;
+    list-style:none;
+    background:#1f2937;
+    border:1px solid var(--hs-line);
+    border-radius:12px;
+    box-shadow: var(--shadow);
+    opacity:0;
+    transform: translateY(6px);
+    pointer-events:none;
+    transition: .15s ease;
+}
+.hs-dropdown a{
+    display:block;
+    padding:8px 10px;
+    color:#e5e7eb;
+    border-radius:8px;
+}
+.hs-dropdown a:hover{
+    background: rgba(255,255,255,.06);
+    color:#fff;
+}
+.hs-dropdown .sep{
+    height:1px;
+    margin:6px 0;
+    background: var(--hs-line);
+}
+.hs-user:hover .hs-dropdown{
+    opacity:1;
+    transform: translateY(0);
+    pointer-events:auto;
+}
+
+/* ===== MEGA MENU (3 cột – đúng giao diện ảnh) ===== */
+
+/* Chiều cao header (để căn panel đúng vị trí dưới header) */
+.hs-header{
+    --hs-h: 64px;
+}
+
+/* Item có mega */
+.hs-has-mega{
+    position: relative;
+}
+
+/* Panel mega - SỬA LẠI HOÀN TOÀN */
+.hs-header .hs-mega{
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    max-width: calc(100vw - 40px);
+    background: #fff;
+    color: #111827;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 24px 40px rgba(0,0,0,.18);
+    padding: 28px;
+    z-index: 1200;
+
+    /* Ẩn mặc định */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(6px);
+    transition: opacity .2s ease, transform .2s ease, visibility 0s .2s;
+}
+
+/* Container bên trong mega */
+.hs-mega-inner{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    width: 100%;
+}
+
+/* Mỗi cột */
+.hs-mega-col{
+    display: flex;
+    flex-direction: column;
+}
+
+/* Mở khi hover/focus */
+.hs-has-mega:hover > .hs-mega,
+.hs-has-mega:focus-within > .hs-mega{
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+    transition: opacity .2s ease, transform .2s ease, visibility 0s;
+}
+
+/* Cầu hover để khỏi bị tụt khi di chuyển chuột */
+.hs-has-mega::after{
+    content:"";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 10px;
+    background: transparent;
+}
+
+/* Title cột */
+.hs-mega-title{
+    margin: 0 0 16px;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    color: #000;
+    position: relative;
+    padding-bottom: 8px;
+}
+.hs-mega-title::after{
+    content:"";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 48px;
+    height: 3px;
+    background: #111;
+    border-radius: 2px;
+}
+
+/* Link trong mega */
+.hs-mega-link{
+    display: block;
+    padding: 10px 0;
+    color: #4b5563 !important;
+    text-decoration: none;
+    font-size: 14px;
+    line-height: 1.4;
+    border-radius: 6px;
+    transition: all .15s ease;
+}
+.hs-mega-link:hover{
+    color: #1f2937 !important;
+    background: #f8fafc;
+    padding-left: 8px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 991px){
+    .hs-menu{
+        grid-template-columns: 1fr;
+        gap:10px;
+    }
+    .hs-right{
+        justify-self: start;
+    }
+    .hs-left{
+        flex-wrap: wrap;
+        gap:10px;
+    }
+    .hs-header .hs-mega{
+        position: static;
+        width: auto;
+        max-width: none;
+        border: 0;
+        box-shadow: none;
+        padding: 20px;
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: none;
+        margin-top: 10px;
+    }
+    .hs-mega-inner{
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}

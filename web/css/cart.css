@@ -1,0 +1,142 @@
+/* Nền trang */
+body {
+    background: #f6f7fb;
+}
+
+/* Khung card giỏ hàng */
+.cart-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    padding: 20px;
+}
+
+/* Ảnh sản phẩm nhỏ (60x60, cover) */
+.cart-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 10px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+}
+
+/* Meta thông tin (màu, v.v.) */
+.cart-meta {
+    margin-top: 4px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* Badge chung */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+    color: #374151;
+}
+
+/* Badge size */
+.badge-size {
+    background: #e0f2fe !important;
+    border-color: #bae6fd;
+    color: #0369a1 !important;
+    padding: 8px 16px;
+    font-size: 15px;
+}
+
+/* Badge màu */
+.badge-color {
+    background: #dcfce7;
+    border-color: #bbf7d0;
+    color: #166534;
+}
+
+/* Chấm màu */
+.badge .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid #e5e7eb;
+    display: inline-block;
+}
+
+/* ===== ✅ CSS CHO CỘT MÀU SẮC ===== */
+.color-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+}
+
+.color-display:hover {
+    background: #e9ecef;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.color-display .color-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #dee2e6;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+}
+
+.color-display strong {
+    color: #374151;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Input số lượng */
+.qty-input {
+    max-width: 90px;
+}
+
+/* Header bảng */
+.table thead th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+/* Vùng nút dưới card */
+.sticky {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    padding-top: 12px;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* Responsive cho mobile */
+@media (max-width: 768px) {
+    .color-display {
+        padding: 4px 8px;
+        font-size: 0.85rem;
+    }
+    
+    .color-display .color-dot {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .badge-size {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+}

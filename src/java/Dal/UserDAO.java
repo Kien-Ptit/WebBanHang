@@ -1,488 +1,399 @@
+// Đổi package cho đúng với dự án của bạn
 package Dal;
 
 import Model.User;
 import java.sql.*;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 public class UserDAO extends DBContext {
 
-    // Authenticate user by username/email and password
-    public User authenticate(String usernameOrEmail, String password) {
-        String sql = "SELECT * FROM users WHERE (username = ? OR email = ?) AND password = ? AND status = 'active'";
-        
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setString(1, usernameOrEmail);
-            stmt.setString(2, usernameOrEmail);
-            stmt.setString(3, password);
-            
-            ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                User user = mapResultSetToUser(rs);
-                updateLastLogin(user.getId());
-                return user;
-            }
-            
-        } catch (SQLException e) {
-            System.err.println("❌ Error in authenticate: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
-            System.err.println("👤 User: Kien-Ptit");
-            e.printStackTrace();
-        }
-        
-        return null;
+    // Map 1 row -> User
+    private User map(ResultSet rs) throws SQLException {
+        User u = new User();
+        u.setId(rs.getInt("id"));
+        u.setUsername(rs.getString("username"));
+        u.setPassword(rs.getString("password"));
+        u.setEmail(rs.getString("email"));
+        u.setFullname(rs.getString("full_name"));
+        u.setPhone(rs.getString("phone"));
+        u.setAddress(rs.getString("address"));
+        u.setRole(rs.getString("role"));
+        u.setStatus(rs.getString("status"));
+        u.setAvatar(rs.getString("avatar"));
+        Timestamp ll = rs.getTimestamp("last_login");
+        u.setLastLogin(ll);
+        return u;
     }
 
-    // Get user by ID
-    public User getUserById(int userId) {
-        String sql = "SELECT * FROM users WHERE id = ?";
-        
+    // Kiểm tra trùng username/email
+    public boolean checkUserExists(String username, String email) throws Exception {
+        String sql = "SELECT id FROM users WHERE username = ? OR email = ?";
         try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                return mapResultSetToUser(rs);
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, username);
+            st.setString(2, email);
+            try (ResultSet rs = st.executeQuery()) {
+                return rs.next();
             }
-            
-        } catch (SQLException e) {
-            System.err.println("❌ Error in getUserById: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        
-        return null;
-    }
-
-    // Get user by username
-    public User getUserByUsername(String username) {
-        String sql = "SELECT * FROM users WHERE username = ?";
-        
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                return mapResultSetToUser(rs);
-            }
-            
-        } catch (SQLException e) {
-            System.err.println("❌ Error in getUserByUsername: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
-            e.printStackTrace();
-        }
-        
-        return null;
-    }
-
-    // Get user by email
-    public User getUserByEmail(String email) {
-        String sql = "SELECT * FROM users WHERE email = ?";
-        
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setString(1, email);
-            ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                return mapResultSetToUser(rs);
-            }
-            
-        } catch (SQLException e) {
-            System.err.println("❌ Error in getUserByEmail: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
-            e.printStackTrace();
-        }
-        
-        return null;
-    }
-
-    // Create new user
-    public boolean createUser(User user) {
-        String sql = "INSERT INTO users (username, email, password, first_name, last_name, phone, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
-        
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setString(1, user.getUsername());
-            stmt.setString(2, user.getEmail());
-            stmt.setString(3, user.getPassword());
-            stmt.setString(4, user.getFirstName());
-            stmt.setString(5, user.getLastName());
-            stmt.setString(6, user.getPhone());
-            stmt.setString(7, user.getRole());
-            stmt.setString(8, user.getStatus());
-            
-            int result = stmt.executeUpdate();
-            if (result > 0) {
-                System.out.println("✅ User created successfully: " + user.getUsername());
-                System.out.println("📅 Time: " + java.time.LocalDateTime.now());
-                System.out.println("👤 Created by: Kien-Ptit");
-                return true;
-            }
-            
-        } catch (SQLException e) {
-            System.err.println("❌ Error in createUser: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
-            System.err.println("👤 User: Kien-Ptit");
-            e.printStackTrace();
-        }
-        
         return false;
     }
 
-    // Update user
-    public boolean updateUser(User user) {
-        String sql = "UPDATE users SET email = ?, first_name = ?, last_name = ?, phone = ?, role = ?, status = ?, updated_at = NOW() WHERE id = ?";
-        
+    // Đăng ký
+    public int insert(User u) throws Exception {
+        String sql = "INSERT INTO users (username, password, email, full_name, phone, address, role, status, avatar) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setString(1, user.getEmail());
-            stmt.setString(2, user.getFirstName());
-            stmt.setString(3, user.getLastName());
-            stmt.setString(4, user.getPhone());
-            stmt.setString(5, user.getRole());
-            stmt.setString(6, user.getStatus());
-            stmt.setInt(7, user.getId());
-            
-            int result = stmt.executeUpdate();
-            if (result > 0) {
-                System.out.println("✅ User updated successfully: " + user.getUsername());
-                System.out.println("📅 Time: " + java.time.LocalDateTime.now());
-                System.out.println("👤 Updated by: Kien-Ptit");
-                return true;
-            }
-            
-        } catch (SQLException e) {
-            System.err.println("❌ Error in updateUser: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
-            e.printStackTrace();
-        }
-        
-        return false;
-    }
-
-    // Update password
-    public boolean updatePassword(int userId, String newPassword) {
-        String sql = "UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?";
-        
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setString(1, newPassword);
-            stmt.setInt(2, userId);
-            
-            int result = stmt.executeUpdate();
-            if (result > 0) {
-                System.out.println("✅ Password updated successfully for user ID: " + userId);
-                System.out.println("📅 Time: " + java.time.LocalDateTime.now());
-                System.out.println("👤 Updated by: Kien-Ptit");
-                return true;
-            }
-            
-        } catch (SQLException e) {
-            System.err.println("❌ Error in updatePassword: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
-            e.printStackTrace();
-        }
-        
-        return false;
-    }
-
-    // Update last login
-    public boolean updateLastLogin(int userId) {
-        String sql = "UPDATE users SET last_login = NOW(), updated_at = NOW() WHERE id = ?";
-        
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, userId);
-            
-            int result = stmt.executeUpdate();
-            if (result > 0) {
-                System.out.println("✅ Last login updated for user ID: " + userId);
-                System.out.println("📅 Time: " + java.time.LocalDateTime.now());
-                return true;
-            }
-            
-        } catch (SQLException e) {
-            System.err.println("❌ Error in updateLastLogin: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
-            e.printStackTrace();
-        }
-        
-        return false;
-    }
-
-    // Get all users
-    public List<User> getAllUsers() {
-        List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM users ORDER BY created_at DESC";
-        
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery();
-            
-            while (rs.next()) {
-                users.add(mapResultSetToUser(rs));
-            }
-            
-            System.out.println("✅ Retrieved " + users.size() + " users from database");
-            System.out.println("📅 Time: " + java.time.LocalDateTime.now());
-            System.out.println("👤 Requested by: Kien-Ptit");
-            
-        } catch (SQLException e) {
-            System.err.println("❌ Error in getAllUsers: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
-            e.printStackTrace();
-        }
-        
-        return users;
-    }
-
-    // Get users by role
-    public List<User> getUsersByRole(String role) {
-        List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM users WHERE role = ? AND status = 'active' ORDER BY created_at DESC";
-        
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setString(1, role);
-            ResultSet rs = stmt.executeQuery();
-            
-            while (rs.next()) {
-                users.add(mapResultSetToUser(rs));
-            }
-            
-            System.out.println("✅ Retrieved " + users.size() + " users with role: " + role);
-            System.out.println("📅 Time: " + java.time.LocalDateTime.now());
-            
-        } catch (SQLException e) {
-            System.err.println("❌ Error in getUsersByRole: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
-            e.printStackTrace();
-        }
-        
-        return users;
-    }
-
-    // Check if username exists
-    public boolean isUsernameExists(String username) {
-        String sql = "SELECT COUNT(*) FROM users WHERE username = ?";
-        
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
-            
-        } catch (SQLException e) {
-            System.err.println("❌ Error in isUsernameExists: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
-            e.printStackTrace();
-        }
-        
-        return false;
-    }
-
-    // Check if email exists
-    public boolean isEmailExists(String email) {
-        String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
-        
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setString(1, email);
-            ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
-            
-        } catch (SQLException e) {
-            System.err.println("❌ Error in isEmailExists: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
-            e.printStackTrace();
-        }
-        
-        return false;
-    }
-
-    // Delete user (soft delete - change status to inactive)
-    public boolean deleteUser(int userId) {
-        String sql = "UPDATE users SET status = 'inactive', updated_at = NOW() WHERE id = ?";
-        
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, userId);
-            
-            int result = stmt.executeUpdate();
-            if (result > 0) {
-                System.out.println("✅ User soft deleted (status = inactive) for ID: " + userId);
-                System.out.println("📅 Time: " + java.time.LocalDateTime.now());
-                System.out.println("👤 Deleted by: Kien-Ptit");
-                return true;
-            }
-            
-        } catch (SQLException e) {
-            System.err.println("❌ Error in deleteUser: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
-            e.printStackTrace();
-        }
-        
-        return false;
-    }
-
-    // Hard delete user (permanent deletion)
-    public boolean hardDeleteUser(int userId) {
-        String sql = "DELETE FROM users WHERE id = ?";
-        
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, userId);
-            
-            int result = stmt.executeUpdate();
-            if (result > 0) {
-                System.out.println("⚠️ User permanently deleted from database for ID: " + userId);
-                System.out.println("📅 Time: " + java.time.LocalDateTime.now());
-                System.out.println("👤 Deleted by: Kien-Ptit");
-                return true;
-            }
-            
-        } catch (SQLException e) {
-            System.err.println("❌ Error in hardDeleteUser: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
-            e.printStackTrace();
-        }
-        
-        return false;
-    }
-
-    // Search users by keyword
-    public List<User> searchUsers(String keyword) {
-        List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM users WHERE (username LIKE ? OR email LIKE ? OR first_name LIKE ? OR last_name LIKE ?) AND status = 'active' ORDER BY created_at DESC";
-        
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            String searchTerm = "%" + keyword + "%";
-            stmt.setString(1, searchTerm);
-            stmt.setString(2, searchTerm);
-            stmt.setString(3, searchTerm);
-            stmt.setString(4, searchTerm);
-            
-            ResultSet rs = stmt.executeQuery();
-            
-            while (rs.next()) {
-                users.add(mapResultSetToUser(rs));
-            }
-            
-            System.out.println("🔍 Search completed for keyword: '" + keyword + "' - Found " + users.size() + " users");
-            System.out.println("📅 Time: " + java.time.LocalDateTime.now());
-            System.out.println("👤 Searched by: Kien-Ptit");
-            
-        } catch (SQLException e) {
-            System.err.println("❌ Error in searchUsers: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
-            e.printStackTrace();
-        }
-        
-        return users;
-    }
-
-    // Test connection
-    public boolean testConnection() {
-        try {
-            if (connection != null && !connection.isClosed()) {
-                // Test with a simple query
-                PreparedStatement stmt = connection.prepareStatement("SELECT 1");
-                ResultSet rs = stmt.executeQuery();
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, u.getUsername());
+            st.setString(2, u.getPassword()); // TODO: nếu muốn, mã hoá tại đây (BCrypt)
+            st.setString(3, u.getEmail());
+            st.setString(4, u.getFullname());
+            st.setString(5, u.getPhone());
+            st.setString(6, u.getAddress());
+            st.setString(7, u.getRole() == null ? "customer" : u.getRole());
+            st.setString(8, u.getStatus() == null ? "active" : u.getStatus());
+            st.setString(9, u.getAvatar());
+            st.executeUpdate();
+            try (ResultSet rs = st.getGeneratedKeys()) {
                 if (rs.next()) {
-                    System.out.println("✅ Database connection test successful");
-                    System.out.println("📅 Time: " + java.time.LocalDateTime.now());
-                    System.out.println("👤 Tested by: Kien-Ptit");
-                    return true;
+                    return rs.getInt(1);
                 }
+                return 0;
             }
-        } catch (SQLException e) {
-            System.err.println("❌ Connection test failed: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        
-        return false;
-    }
-
-    // Get user count by status
-    public int getUserCountByStatus(String status) {
-        String sql = "SELECT COUNT(*) FROM users WHERE status = ?";
-        
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setString(1, status);
-            ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                int count = rs.getInt(1);
-                System.out.println("📊 User count for status '" + status + "': " + count);
-                System.out.println("📅 Time: " + java.time.LocalDateTime.now());
-                return count;
-            }
-            
-        } catch (SQLException e) {
-            System.err.println("❌ Error in getUserCountByStatus: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
-            e.printStackTrace();
-        }
-        
         return 0;
     }
 
-    // Helper method to map ResultSet to User object
-    private User mapResultSetToUser(ResultSet rs) throws SQLException {
-        User user = new User();
-        
+    // Đăng nhập (username hoặc email) + trạng thái active
+    public User login(String usernameOrEmail, String password) throws Exception {
+        String sql = "SELECT * FROM users WHERE (username = ? OR email = ?) AND password = ? AND status = 'active'";
+
+        // THÊM LOG DEBUG
+        System.out.println("DEBUG SQL: " + sql);
+        System.out.println("DEBUG Params: [" + usernameOrEmail + "], [" + password + "]");
+
         try {
-            user.setId(rs.getInt("id"));
-            user.setUsername(rs.getString("username"));
-            user.setEmail(rs.getString("email"));
-            user.setPassword(rs.getString("password"));
-            user.setFirstName(rs.getString("first_name"));
-            user.setLastName(rs.getString("last_name"));
-            user.setPhone(rs.getString("phone"));
-            user.setRole(rs.getString("role"));
-            user.setStatus(rs.getString("status"));
-            
-            // Set optional fields if they exist
-            if (hasColumn(rs, "last_login")) {
-                user.setLastLogin(rs.getTimestamp("last_login"));
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, usernameOrEmail);
+            st.setString(2, usernameOrEmail);
+            st.setString(3, password);
+
+            try (ResultSet rs = st.executeQuery()) {
+                if (rs.next()) {
+                    System.out.println("DEBUG - User found in DB");
+                    return map(rs);
+                }
+                System.out.println("DEBUG - No user found in DB");
+                return null;
             }
-            if (hasColumn(rs, "created_at")) {
-                user.setCreatedAt(rs.getTimestamp("created_at"));
-            }
-            if (hasColumn(rs, "updated_at")) {
-                user.setUpdatedAt(rs.getTimestamp("updated_at"));
-            }
-            
         } catch (Exception e) {
-            System.err.println("❌ Error mapping ResultSet to User: " + e.getMessage());
-            System.err.println("📅 Time: " + java.time.LocalDateTime.now());
+            System.out.println("DEBUG - Exception in login: " + e.getMessage());
             e.printStackTrace();
         }
-        
-        return user;
+        return null;
     }
 
-    // Helper method to check if column exists in ResultSet
-    private boolean hasColumn(ResultSet rs, String columnName) {
+    // Cập nhật last_login
+    public void updateLastLogin(int userId) throws Exception {
+        String sql = "UPDATE users SET last_login = ? WHERE id = ?";
         try {
-            rs.getObject(columnName);
-            return true;
-        } catch (SQLException e) {
-            return false;
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setTimestamp(1, Timestamp.from(Instant.now()));
+            st.setInt(2, userId);
+            st.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Tìm user theo id (tuỳ chọn)
+    public User findById(int id) throws Exception {
+        String sql = "SELECT * FROM users WHERE id = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, id);
+            try (ResultSet rs = st.executeQuery()) {
+                return rs.next() ? map(rs) : null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean updateProfile(Model.User u) throws SQLException {
+        String sql = "UPDATE users SET full_name=?, email=?, phone=?, address=?, avatar=? WHERE id=?";
+
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, u.getFullname());
+            ps.setString(2, u.getEmail());
+            ps.setString(3, u.getPhone());
+            ps.setString(4, u.getAddress());
+            ps.setString(5, u.getAvatar());
+            ps.setInt(6, u.getId());
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    public boolean changePassword(int userId, String currentPlain, String nextPlain) throws SQLException {
+        String check = "SELECT password FROM users WHERE id=?";
+        String update = "UPDATE users SET password=? WHERE id=?";
+        try (Connection con = getConnection(); PreparedStatement ps1 = con.prepareStatement(check)) {
+            ps1.setInt(1, userId);
+            try (ResultSet rs = ps1.executeQuery()) {
+                if (!rs.next()) {
+                    return false;
+                }
+                String curInDb = rs.getString(1);
+                if (curInDb == null || !curInDb.equals(currentPlain)) {
+                    return false; // sai mật khẩu hiện tại
+                }
+            }
+            try (PreparedStatement ps2 = con.prepareStatement(update)) {
+                ps2.setString(1, nextPlain);
+                ps2.setInt(2, userId);
+                return ps2.executeUpdate() > 0;
+            }
+        }
+    }
+    // ==================== ADMIN METHODS - FIXED ====================
+
+    /**
+     * Đếm tổng số người dùng (role = customer)
+     */
+    public int getTotalUsersCount() throws Exception {
+        String sql = "SELECT COUNT(*) FROM users WHERE role = 'customer'";
+
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            ResultSet rs = st.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Đếm user mới hôm nay
+     */
+    public int getTodayNewUsersCount() throws Exception {
+        String sql = "SELECT COUNT(*) FROM users WHERE DATE(created_at) = CURDATE()";
+
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            ResultSet rs = st.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Đếm tổng số admin
+     */
+    public int getTotalAdminsCount() throws Exception {
+        String sql = "SELECT COUNT(*) FROM users WHERE role = 'admin'";
+
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            ResultSet rs = st.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Lấy tất cả người dùng - FIXED
+     */
+    public List<User> getAllUsersForAdmin() throws Exception {
+        String sql = "SELECT * FROM users ORDER BY created_at DESC";
+
+        List<User> users = new ArrayList<>();
+
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            ResultSet rs = st.executeQuery();
+
+            while (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt("id"));
+                user.setUsername(rs.getString("username"));
+                user.setPassword(rs.getString("password"));
+                user.setFullname(rs.getString("full_name"));
+                user.setEmail(rs.getString("email"));
+                user.setPhone(rs.getString("phone"));
+                user.setAddress(rs.getString("address"));
+                user.setRole(rs.getString("role"));
+                user.setStatus(rs.getString("status"));
+                user.setAvatar(rs.getString("avatar"));
+                user.setCreatedAt(rs.getTimestamp("created_at"));
+                user.setUpdatedAt(rs.getTimestamp("updated_at"));
+
+                users.add(user);
+            }
+        }
+
+        return users;
+    }
+
+    /**
+     * Tìm kiếm người dùng - FIXED
+     */
+    public List<User> searchUsersForAdmin(String keyword) throws Exception {
+        String sql = """
+        SELECT * FROM users 
+        WHERE full_name LIKE ? 
+           OR email LIKE ? 
+           OR phone LIKE ?
+           OR username LIKE ?
+        ORDER BY created_at DESC
+    """;
+
+        List<User> users = new ArrayList<>();
+
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            String searchPattern = "%" + keyword + "%";
+            st.setString(1, searchPattern);
+            st.setString(2, searchPattern);
+            st.setString(3, searchPattern);
+            st.setString(4, searchPattern);
+
+            ResultSet rs = st.executeQuery();
+
+            while (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt("id"));
+                user.setUsername(rs.getString("username"));
+                user.setFullname(rs.getString("full_name"));
+                user.setEmail(rs.getString("email"));
+                user.setPhone(rs.getString("phone"));
+                user.setRole(rs.getString("role"));
+                user.setStatus(rs.getString("status"));
+                user.setCreatedAt(rs.getTimestamp("created_at"));
+
+                users.add(user);
+            }
+        }
+
+        return users;
+    }
+
+    /**
+     * Lấy người dùng theo vai trò - FIXED
+     */
+    public List<User> getUsersByRoleForAdmin(String role) throws Exception {
+        String sql = "SELECT * FROM users WHERE role = ? ORDER BY created_at DESC";
+
+        List<User> users = new ArrayList<>();
+
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setString(1, role);
+            ResultSet rs = st.executeQuery();
+
+            while (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt("id"));
+                user.setUsername(rs.getString("username"));
+                user.setFullname(rs.getString("full_name"));
+                user.setEmail(rs.getString("email"));
+                user.setPhone(rs.getString("phone"));
+                user.setRole(rs.getString("role"));
+                user.setStatus(rs.getString("status"));
+                user.setCreatedAt(rs.getTimestamp("created_at"));
+
+                users.add(user);
+            }
+        }
+
+        return users;
+    }
+
+    /**
+     * Tạo người dùng mới - FIXED
+     */
+    public boolean createUserByAdmin(User user) throws Exception {
+        String sql = """
+        INSERT INTO users (username, password, full_name, email, phone, role, status, created_at) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+    """;
+
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setString(1, user.getUsername());
+            st.setString(2, user.getPassword()); // Hash password trước khi gọi
+            st.setString(3, user.getFullname());
+            st.setString(4, user.getEmail());
+            st.setString(5, user.getPhone());
+            st.setString(6, user.getRole());
+            st.setString(7, user.getStatus() != null ? user.getStatus() : "active");
+
+            return st.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Cập nhật thông tin người dùng - FIXED
+     */
+    public boolean updateUserByAdmin(User user) throws Exception {
+        String sql = """
+        UPDATE users 
+        SET full_name = ?, 
+            email = ?, 
+            phone = ?, 
+            role = ?, 
+            updated_at = NOW() 
+        WHERE id = ?
+    """;
+
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setString(1, user.getFullname());
+            st.setString(2, user.getEmail());
+            st.setString(3, user.getPhone());
+            st.setString(4, user.getRole());
+            st.setInt(5, user.getId());
+
+            return st.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Xóa người dùng - FIXED
+     */
+    public boolean deleteUserByAdmin(int id) throws Exception {
+        String sql = "DELETE FROM users WHERE id = ?";
+
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setInt(1, id);
+            return st.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Bật/Tắt trạng thái người dùng - FIXED
+     */
+    public boolean toggleUserStatusByAdmin(int id) throws Exception {
+        String sql = """
+        UPDATE users 
+        SET status = CASE WHEN status = 'active' THEN 'inactive' ELSE 'active' END,
+            updated_at = NOW() 
+        WHERE id = ?
+    """;
+
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setInt(1, id);
+            return st.executeUpdate() > 0;
         }
     }
 }
